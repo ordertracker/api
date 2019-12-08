@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  backend:
+    image: 'ibedelovski/ordertracker-backend:0.1.0'
+    container_name: ordertracker-backend
+    hostname: backend
+    ports:
+      - 5000:5000
+    env_file: ./.env
