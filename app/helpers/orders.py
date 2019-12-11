@@ -3,9 +3,35 @@ from requests_oauthlib import OAuth1
 from flask import current_app as app
 from app.helpers.common import welfare
 
+'''
+Private method for keeping the Magento URL
+'''
 def _url():
     return app.config.get("MAGENTO_URL")
 
+'''
+OAuth Authentication
+'''
+def _auth():
+    auth = OAuth1(
+                app.config.get("CONSUMER_KEY"),
+                app.config.get("CONSUMER_SECRET"),
+                app.config.get("ACCESS_TOKEN"),
+                app.config.get("ACCESS_TOKEN_SECRET")
+            )
+    return auth
+
+'''
+Genereting header for all requests
+'''
+def generate_headers():
+    return {
+        'Content-Type': 'application/json'
+    }
+
+'''
+Counting all orders
+'''
 def _orders_count():
 
     path = '/rest/V1/orders?searchCriteria=all'
@@ -17,20 +43,27 @@ def _orders_count():
 
     return orders
 
-def _auth():
-    auth = OAuth1(
-                app.config.get("CONSUMER_KEY"),
-                app.config.get("CONSUMER_SECRET"),
-                app.config.get("ACCESS_TOKEN"),
-                app.config.get("ACCESS_TOKEN_SECRET")
-            )
-    return auth
+'''
+Counting orders by status
+'''
+def _orders_count_by_status(status):
 
-def generate_headers():
-    return {
-        'Content-Type': 'application/json'
-    }
+    path = ("/rest/V1/orders?"
+            "&searchCriteria[filter_groups][0][filters][0][field]=status"
+            "&searchCriteria[filter_groups][0][filters][0][value]=%s"
+            "&searchCriteria[filter_groups][0][filters][0][condition_type]=eq"
+            "&searchCriteria[sortOrders][0][field]=created_at&searchCriteria[sortOrders][0][direction]=DESC") % (status)
+    url = _url() + path
+    headers = generate_headers()
 
+    r = requests.get(url=url, auth=_auth(), headers=headers)
+    orders = r.json()
+
+    return orders
+
+'''
+Get all Magento orders
+'''
 def get_all_orders(start, limit):
 
     start = int(start)
@@ -83,8 +116,17 @@ def get_all_orders(start, limit):
     obj['results'] = orders["items"][(start - 1):(start - 1 + limit)]
 
     return obj
+    
+'''
+Get orders by status
+'''
+def get_orders_by_status(status, start, limit):
 
-def get_orders_by_status(status):
+    start = int(start)
+    limit = int(limit)
+
+    orders = _orders_count_by_status(status)
+    count = len(orders["items"])
     
     path = ("/rest/V1/orders?"
             "fields=items[entity_id,increment_id,created_at,extension_attributes[delivery_date],customer_email,customer_firstname,customer_lastname,status,subtotal_incl_tax,items[name,price_incl_tax,qty_ordered]]"
@@ -96,9 +138,37 @@ def get_orders_by_status(status):
     headers = generate_headers()
 
     r = requests.get(url=url, auth=_auth(), headers=headers)
+    orders = r.json()
+
+    endpoint = '/api/orders'
+
+    if limit < 0:
+        return {
+            "message": "Pagination error"
+        }, 404
+
+    obj = {}
+    obj['start'] = start
+    obj['limit'] = limit
+    obj['count'] = count
+
+    if start == 1:
+        obj['previous'] = ''
+    else:
+        start_copy = start - 1
+        obj['previous'] = endpoint + '?start=%d&limit=%d' % (start_copy, limit)
+
+    if start + limit > count:
+        obj['next'] = ''
+    else:
+        start_copy = start + 1
+        obj['next'] = endpoint + '?start=%d&limit=%d' % (start_copy, limit)
+
+    obj['results'] = orders["items"][(start - 1):(start - 1 + limit)]
+
     response = {
         "message": r.reason,
-        "response": r.json(),
+        "response": obj,
         "code": r.status_code
     }
 
@@ -143,6 +213,9 @@ def get_order_items(entity_id):
 
     return r.json()
 
+'''
+Updating specific order with new status
+'''
 def order_update(data):
 
     json = { 

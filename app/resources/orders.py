@@ -88,9 +88,13 @@ class OrderItems(Resource):
 class OrdersByStatus(Resource):
     @authorize
     @welfare
-    @api.doc(description='Get all pending orders')
+    @api.doc(description='Get orders by status')
     def get(self, status):
-        order = get_orders_by_status(status)
+        order = get_orders_by_status(
+            status,
+            start=request.args.get('start', 1),
+            limit=request.args.get('limit', 10)
+        )
         if order:
             return order, 200
         else:
