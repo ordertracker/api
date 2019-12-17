@@ -29,6 +29,11 @@ _orders_parser.add_argument(
     type=str,
     required=False
 )
+_orders_parser.add_argument(
+    "reason",
+    type=str,
+    required=False
+)
 
 api = Namespace('orders', path='/api', description='Magento orders')
 
@@ -116,30 +121,29 @@ class OrderUpdate(Resource):
         data = _orders_parser.parse_args()
         order_statuses = ['processing', 'completed', 'canceled']
 
-        # Checking order status
         if data['status'] not in order_statuses:
             return {
-                "message": "Unknown order status"
-            }, 400
+                "message": "Unknown order status",
+                "response": "",
+                "code": 400
+            }
 
-        # Getting the order object
         order = get_order(data['entity_id'])
         if order['code'] != 200:
             return {
-                "message": {
-                    "socket": "Order not exist"
-                }
-            }, 400
+                "message": "Order not exist",
+                "response": "",
+                "code": 400
+            }
         
-        # Print receipt and send SMS for the 'processing orders
         if data['status'] == 'processing':
 
             if data['prep_time'] == '':
                 return {
-                    "message": {
-                        "socket": "Prepare time is required for processing orders"
-                    }
-                }, 400
+                    "message": "Prepare time is required for processing orders",
+                    "response": "",
+                    "code": 400
+                }
 
             sms_content = "Вашата нарачка ќе биде подготвена за " + data['prep_time'] + " минути. Ви благодариме!"
 
@@ -148,44 +152,85 @@ class OrderUpdate(Resource):
 
             if printer['status'] != 'OK':
                 return {
-                    "message": {
-                        "socket": {
-                            "printer": printer['status']
-                        }
-                    }
-                }, 400
+                    "message": "Receipt not successfully printed",
+                    "response": {
+                        "printer": printer['status']
+                    },
+                    "code": 400
+                }
                 
             if sms['status'] != 'OK':
                 return {
-                    "message": {
-                        "socket": {
-                            "sms": sms['status']
-                        }
-                    }
-                }, 400
+                    "message": "Message not sent to customer",
+                    "response": {
+                        "sms": sms['status']
+                    },
+                    "code": 400
+                }
 
             response.update(
                             {
-                                "socket": {
+                                "response": {
                                     "sms": sms,
                                     "printer": printer,
                                 }
                             }
             )
 
-        # Updating the order status in Magento
+        if data['status'] == 'canceled':
+            sms_content = data['reason']
+            sms = socket_sms(order, sms_content)
+
+            if sms['status'] != 'OK':
+                return {
+                    "message": "Message not sent to customer",
+                    "response": {
+                        "sms": sms['status']
+                    },
+                    "code": 400
+                }
+
+            response.update(
+                            {
+                                "response": {
+                                    "sms": sms
+                                }
+                            }
+            )
+
+        if data['status'] == 'completed':
+            sms_content = "Вашата нарачка е успешно завршена."
+            sms = socket_sms(order, sms_content)
+
+            if sms['status'] != 'OK':
+                return {
+                    "message": "Message not sent to customer",
+                    "response": {
+                        "sms": sms['status']
+                    },
+                    "code": 400
+                }
+
+            response.update(
+                            {
+                                "response": {
+                                    "sms": sms
+                                }
+                            }
+            )
+
         order = order_update(data)
         if order != 'OK':
             return {
-                "message": {
-                    "socket": "Order not updated in Magento"
-                }
-            }, 400
+                "message": "Order not updated in Magento",
+                "code": 400
+            }
 
         response.update(
                         {
-                            "magento": "Order updated successfully"
+                            "message": "Order updated successfully",
+                            "code": 200
                         }
         )
 
-        return response, 200
+        return response
