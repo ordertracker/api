@@ -80,7 +80,7 @@ def get_all_orders(start, limit):
             "&searchCriteria[filter_groups][1][filters][0][field]=created_at"
             "&searchCriteria[filter_groups][1][filters][0][value]=2019-07-11T04:00:00.0000000Z"
             "&searchCriteria[filter_groups][1][filters][0][condition_type]=to"
-            "&searchCriteria[sortOrders][0][field]=created_at&searchCriteria[sortOrders][0][direction]=DESC"
+            "&searchCriteria[sortOrders][0][field]=created_at&searchCriteria[sortOrders][0][direction]=ASC"
             "&searchCriteria[current_page]=%d"
             "&searchCriteria[page_size]=%d") % (start, limit)
     url = _url() + path
@@ -133,13 +133,15 @@ def get_orders_by_status(status, start, limit):
             "&searchCriteria[filter_groups][0][filters][0][field]=status"
             "&searchCriteria[filter_groups][0][filters][0][value]=%s"
             "&searchCriteria[filter_groups][0][filters][0][condition_type]=eq"
-            "&searchCriteria[sortOrders][0][field]=created_at&searchCriteria[sortOrders][0][direction]=DESC") % (status)
+            "&searchCriteria[sortOrders][0][field]=created_at&searchCriteria[sortOrders][0][direction]=ASC"
+            "&searchCriteria[current_page]=%d"
+            "&searchCriteria[page_size]=%d") % (status, start, limit)
     url = _url() + path
     headers = generate_headers()
 
     r = requests.get(url=url, auth=_auth(), headers=headers)
     orders = r.json()
-
+    
     endpoint = '/api/orders'
 
     if limit < 0:
@@ -164,7 +166,10 @@ def get_orders_by_status(status, start, limit):
         start_copy = start + 1
         obj['next'] = endpoint + '?start=%d&limit=%d' % (start_copy, limit)
 
-    obj['results'] = orders["items"][(start - 1):(start - 1 + limit)]
+    if count > 0:
+        obj['results'] = orders["items"][(start - 1):(start - 1 + limit)]
+    else:
+        obj['results'] = orders["items"]
 
     response = {
         "message": r.reason,
