@@ -101,11 +101,17 @@ class OrdersByStatus(Resource):
             limit=request.args.get('limit', 10)
         )
         if order:
-            return order, 200
+            return {
+                "message": order['message'],
+                "response": order['response'],
+                "code": order['code']
+            }
         else:
             return {
-                "message": "Request error"
-            }, 404
+                "message": "Request error for %s orders" % status,
+                "response": {},
+                "code": 400
+            }
 
 @api.route('/order_update')
 @api.doc(response=status_code_responses,

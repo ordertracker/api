@@ -141,7 +141,7 @@ def get_orders_by_status(status, start, limit):
 
     r = requests.get(url=url, auth=_auth(), headers=headers)
     orders = r.json()
-
+    
     endpoint = '/api/orders'
 
     if limit < 0:
@@ -166,7 +166,10 @@ def get_orders_by_status(status, start, limit):
         start_copy = start + 1
         obj['next'] = endpoint + '?start=%d&limit=%d' % (start_copy, limit)
 
-    obj['results'] = orders["items"][(start - 1):(start - 1 + limit)]
+    if count > 0:
+        obj['results'] = orders["items"][(start - 1):(start - 1 + limit)]
+    else:
+        obj['results'] = orders["items"]
 
     response = {
         "message": r.reason,
