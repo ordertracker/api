@@ -2,6 +2,7 @@ import hashlib
 from flask import current_app as app
 
 from app.models.user import UserModel
+from app.models.role import RoleModel
 
 '''
 Create default user in database
@@ -17,4 +18,27 @@ def default_user():
     if not user:
         user = UserModel(username, hashlib.sha256(password.encode("utf-8")).hexdigest(), name, email)
         user.save_to_db()
-        app.logger.info('%s created successfully', username)
+        app.logger.info('User %s created successfully', username)
+
+'''
+Creating the default user roles
+'''
+def init_roles():
+
+    roles = {
+            1: {
+                'key': 'admin',
+                'name': 'Administrator'
+            },
+            2: {
+                'key': 'organization',
+                'name': 'Organization'
+            }
+    }
+
+    for key, value in roles.items():
+        role = RoleModel.find_role_by_key(value['key'])
+        if not role:
+            role_model = RoleModel(value['key'], value['name'])
+            role_model.save_to_db()
+            app.logger.info('Role %s created successfully', value['key'])
