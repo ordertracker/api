@@ -1,5 +1,7 @@
 from app.database.db import db
+
 from app.models.role import RoleModel
+from app.models.organizations import OrganizationsModel
 
 class UserModel(db.Model):
     __tablename__ = "users"
@@ -9,15 +11,18 @@ class UserModel(db.Model):
     name = db.Column(db.String(50))
     email = db.Column(db.String(50))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    org_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
 
     role = db.relationship("RoleModel", backref=(db.backref("roles", uselist=False)))
+    organization = db.relationship("OrganizationsModel", backref=(db.backref("organizations", uselist=False)))
 
-    def __init__(self, username, password, name, email, role_id):
+    def __init__(self, username, password, name, email, role_id, org_id):
         self.username = username
         self.password = password
         self.name = name
         self.email = email
         self.role_id = role_id
+        self.org_id = org_id
 
     def json(self):
         return {
@@ -25,7 +30,8 @@ class UserModel(db.Model):
             "username": self.username,
             "name": self.name,
             "email": self.email,
-            "role_id": self.role_id
+            "role_id": self.role_id,
+            "organization_id": self.org_id
         }, 200
 
     def save_to_db(self):

@@ -4,6 +4,7 @@ from flask_restplus import Api
 from .orders import api as orders_api
 from .user import api as user_api
 from .products.attributes import api as products_attribute_api
+from .organizations.organizations import api as organizations_organizations_api
 
 authorizations = {
     'apitoken': {
@@ -25,5 +26,6 @@ api = Api(
 
 # Initializing the API
 api.add_namespace(orders_api)
+api.add_namespace(organizations_organizations_api)
 api.add_namespace(user_api)
 api.add_namespace(products_attribute_api)

@@ -14,10 +14,11 @@ def default_user():
     name = app.config.get('DEFAULT_NAME') 
     email = app.config.get('DEFAULT_EMAIL')
     role_id = 1
+    org_id = 0
 
     user = UserModel.find_user_by_username(username)
     if not user:
-        user = UserModel(username, hashlib.sha256(password.encode("utf-8")).hexdigest(), name, email, role_id)
+        user = UserModel(username, hashlib.sha256(password.encode("utf-8")).hexdigest(), name, email, role_id, org_id)
         user.save_to_db()
         app.logger.info('User %s created successfully', username)
 
