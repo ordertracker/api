@@ -1,10 +1,11 @@
 from flask_restful import reqparse
 from flask_restplus import Namespace, Resource
+from flask_jwt_extended import jwt_required
 
 from flask import current_app as app
 
-from app.helpers.common import authorize, welfare, get_service_token, status_code_responses
-from app.models.organizations import OrganizationsModel
+from app.helpers.common import status_code_responses, is_admin
+from app.models.organizations import Organizations
 
 _organization_parser = reqparse.RequestParser()
 _organization_parser.add_argument(
@@ -26,16 +27,23 @@ api = Namespace('organizations', path='/api', description='User organization')
          security=['apitoken']
         )
 class Organization(Resource):
-    @authorize
+    @jwt_required
+    @is_admin
     def post(self):
         data = _organization_parser.parse_args()
-        if OrganizationsModel.find_org_by_name(data['name']):
+        if Organizations.find_org_by_name(data['name']):
             return {
                 "message": "The name {} is already taken by other organization".format(data['name'])
             }, 400
         
-        org = OrganizationsModel(data['name'], data['description'])
-        org.save_to_db()
-        return {
-            "message": "Organization {} has been created.".format(data['name'])
-        }, 200
+        org = Organizations(data['name'], data['description'])
+
+        try:
+            org.save_to_db()
+            return {
+                "message": "Organization {} has been created.".format(data['name'])
+            }, 200
+        except:
+            return {
+                "message": "The organization named as {} was not saved in the database.".format(data['name'])
+            }, 403

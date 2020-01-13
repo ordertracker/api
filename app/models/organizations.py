@@ -1,6 +1,6 @@
 from app.database.db import db
 
-class OrganizationsModel(db.Model):
+class Organizations(db.Model):
     __tablename__ = "organizations"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
@@ -28,3 +28,7 @@ class OrganizationsModel(db.Model):
     @classmethod
     def get_all_organizations(cls):
         return cls.query.all()
+
+    @classmethod
+    def test(cls):
+        return True
