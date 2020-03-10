@@ -1,11 +1,11 @@
-from flask_restful import Resource, reqparse
+from flask_restful import reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, fresh_jwt_required
 
 from flask import current_app as app
 from flask_restplus import Namespace, Resource
 
-from app.helpers.common import authorize, welfare, get_service_token, status_code_responses
-from app.models.user import UserModel
+from app.helpers.common import authorize, status_code_responses, is_admin
+from app.models.user import User
 
 import hashlib
 
@@ -29,7 +29,7 @@ _user_parser.add_argument(
     help="This field cannot be blank"
 )
 _user_parser.add_argument(
-    "email",
+    "email",      
     type=str,
     required=False,
     help="This field cannot be blank"
@@ -41,31 +41,31 @@ api = Namespace('users', path='/api', description='Users')
 @api.doc(responses=status_code_responses,
          security=['apitoken']
         )
-class User(Resource):
+class Users(Resource):
     @authorize
     @api.doc(description='Get User by username')
     def get(self, username):
-        user = UserModel.find_user_by_username(username)
+        user = User.find_user_by_username(username)
         if user:
             return user.json()
 
         return {
-                   "message": "User not found!"
-               }, 404
+                "message": "User not found!"
+        }, 404
 
     @authorize
     @fresh_jwt_required
     def delete(self, user_id):
-        user = UserModel.find_user_by_id(user_id)
+        user = User.find_user_by_id(user_id)
         if user:
             user.remove_from_db()
             return {
-                       "message": "User deleted!"
-                   }, 200
+                    "message": "User deleted!"
+            }, 200
 
         return {
-                   "message": "User not found!"
-               }, 404
+                "message": "User not found!"
+        }, 404
 
 @api.route('/register')
 @api.doc(responses=status_code_responses,
@@ -75,16 +75,24 @@ class UserRegister(Resource):
     def post(self):
         data = _user_parser.parse_args()
 
-        if UserModel.find_user_by_username(data["username"]):
-            return {
-                       "message": "User {} exists!".format(data["username"])
-                   }, 400
+        username = data["username"]
 
-        user = UserModel(data["username"], hashlib.sha256(data["password"].encode("utf-8")).hexdigest(), data["name"], data["email"])
-        user.save_to_db()
-        return {
-            "message": "User {} created!".format(data["username"])
-        }, 200
+        if User.find_user_by_username(data["username"]):
+            return {
+                    "message": "User {} exists!".format(data["username"])
+            }, 400
+
+        user = User(username, hashlib.sha256(data["password"].encode("utf-8")).hexdigest(), data["name"], data["email"])
+
+        try:            
+            user.save_to_db()
+            return {
+                    "message": "User {} created!".format(username)
+            }, 200
+        except:
+            return {
+                    "message": "The user {} was not saved in the database.".format(username)
+            }, 500
 
 @api.route('/login')
 @api.doc(responses=status_code_responses,
@@ -92,21 +100,31 @@ class UserRegister(Resource):
         )
 class UserLogin(Resource):
     def post(self):
-
         data = _user_parser.parse_args()
-        user = UserModel.find_user_by_username(data["username"])
+        username = data["username"]
+        password = data["password"]
 
-        if user and user.password == hashlib.sha256(data["password"].encode("utf-8")).hexdigest():
+        if not username:
+            return {
+                "message": "Missing username parameter"
+            }, 400
+        if not password:
+            return {
+                "message": "Missing password parameter"
+            }, 400
+
+        user = User.find_user_by_username(username)
+        if user and user.password == hashlib.sha256(password.encode("utf-8")).hexdigest():
             access_token = create_access_token(identity=user.id, fresh=True)
             refresh_token = create_refresh_token(identity=user.id)
-
             return {
-                       "access_token": access_token,
-                       "refresh_token": refresh_token
-                   }, 200
+                    "message": "Successfully logged in as {}".format(username),
+                    "access_token": access_token,
+                    "refresh_token": refresh_token
+            }, 200
 
         return {
-                   "message": "Invalid credentials!"
+                "message": "Invalid credentials!"
         }, 401
 
 
@@ -116,5 +134,5 @@ class TokenRefresh(Resource):
         current_user_id = get_jwt_identity()
         new_token = create_access_token(identity=current_user_id, fresh=False)
         return {
-                   "access_token": new_token
+                "access_token": new_token
         }, 200

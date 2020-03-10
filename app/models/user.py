@@ -1,34 +1,30 @@
 from app.database.db import db
-from app.models.role import RoleModel
 
-class UserModel(db.Model):
-    __tablename__ = "users"
+from flask import current_app as app
+
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80))
-    password = db.Column(db.String())
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    password = db.Column(db.String(), nullable=False, server_default='')
     name = db.Column(db.String(50))
     email = db.Column(db.String(50))
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    roles = db.relationship('Role', backref='user', lazy='dynamic')
 
-    role = db.relationship("RoleModel", backref=(db.backref("roles", uselist=False)))
-
-    def __init__(self, username, password, name, email, role_id):
+    def __init__(self, username, password, name, email):
         self.username = username
         self.password = password
         self.name = name
-        self.email = email
-        self.role_id = role_id
 
     def json(self):
         return {
             "id": self.id,
             "username": self.username,
             "name": self.name,
-            "email": self.email,
-            "role_id": self.role_id
+            "email": self.email
         }, 200
 
     def save_to_db(self):
+
         db.session.add(self)
         db.session.commit()
 
@@ -43,3 +39,29 @@ class UserModel(db.Model):
     @classmethod
     def find_user_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+class Role(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return '<Role {}>'.format(self.name)
+
+    def json(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }, 200
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def find_role_by_name(cls, name):
+        return cls.query.filter_by(name=name).first()
+

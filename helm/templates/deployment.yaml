@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ordertracker.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "ordertracker.name" . }}
+    chart: {{ template "ordertracker.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "ordertracker.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "ordertracker.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: {{ .Values.backend.appEnv }}
+            - name: MAGENTO_URL
+              value: {{ .Values.backend.magentoUrl }}
+            - name: CONSUMER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ordertracker.name" . }}
+                  key: consumerKey
+            - name: CONSUMER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ordertracker.name" . }}
+                  key: consumerSecret
+            - name: ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ordertracker.name" . }}
+                  key: accessToken
+            - name: ACCESS_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ordertracker.name" . }}
+                  key: accessTokenSecret
+            - name: AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ordertracker.name" . }}
+                  key: authToken
+            - name: WS_URL
+              value: {{ .Values.backend.wsUrl }}
+            - name: DEFAULT_USERNAME
+              value: {{ .Values.backend.defaultUsername }}
+            - name: DEFAULT_PASSWORD
+              value: {{ .Values.backend.defaultPassword }}
+            - name: DEFAULT_NAME
+              value: {{ .Values.backend.defaultName }}
+            - name: DEFAULT_EMAIL
+              value: {{ .Values.backend.defaultEmail }}
+          volumeMounts:
+          - mountPath: "{{ .Values.volume.mountPath }}"
+            name: {{ .Values.volume.name }}
+          readinessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          livenessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+      volumes:
+        - name: {{ .Values.volume.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.pvc.name}}

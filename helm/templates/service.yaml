@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "ordertracker.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "ordertracker.name" . }}
+    chart: {{ template "ordertracker.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "ordertracker.name" . }}
+    release: {{ .Release.Name }}

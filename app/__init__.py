@@ -1,11 +1,11 @@
-import os
-import logging
+import os, logging
+
 from flask import Flask
 from flask_cors import CORS
 
 from app.resources import api_blueprint
 from app.database.db import db
-from app.helpers.bootstrap import default_user, init_roles
+from app.helpers.bootstrap import default_user
 
 def create_app(config, **kwargs):
 
@@ -17,11 +17,9 @@ def create_app(config, **kwargs):
 
     logging.basicConfig(level=logging.INFO)
 
-    # Initializing the Database in sqlite
     with app.app_context():
         db.init_app(app)
         db.create_all()
-        init_roles()
         default_user()
 
     auth_token = app.config.get('AUTH_TOKEN') 
