@@ -1,0 +1,52 @@
+# Default values for the Helm chart
+
+replicaCount: 1
+namespace: ''
+name: ''
+
+image:
+  repository: ''
+  tag: ''
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  path: /
+  hosts:
+    - ''
+  tls: []
+
+ordertracker:
+  app:
+    storagePath: /app
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+pvc:
+  name: ''
+
+volume:
+  mountPath: "/data"
+  name: data
+
+backend:
+  appEnv: ''
+  magentoUrl: ''
+  consumerKey: ''
+  consumerSecret: ''
+  accessToken: ''
+  accessTokenSecret: ''
+  authToken: ''
+  wsUrl: ''
+  defaultUsername: ''
+  defaultPassword: ''
+  defaultName: ''
+  defaultEmail: ''
