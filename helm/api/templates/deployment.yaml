@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: {{ template "ordertracker.name" . }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: {{ .Values.image.repository }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
