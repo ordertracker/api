@@ -9,7 +9,7 @@ Flask application for collecting and managing Magento orders, this app can help 
 
 The application produces RESTful Web Services available for the frontend application.
 
-# Copying and License
+## Copying and License
 
 The content is open and licensed under the GNU General Public License v3.0 whose full text may be found at:
 
