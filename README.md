@@ -10,6 +10,21 @@ Flask application for collecting and managing Magento orders, this app can help 
 
 The application produces RESTful Web Services available for the frontend application.
 
+### Starting the applicatiom
+
+Exporting ENV variables
+```
+$ export FLASK_APP=wsgi.py
+$ source .env
+$ export $(cut -d= -f1 .env)
+```
+
+Activating the Python virtualenv and starting the application
+```
+$ . venv/bin/activate
+$ flask run
+```
+
 ## Copying and License
 
 The content is open and licensed under the GNU General Public License v3.0 whose full text may be found at:
