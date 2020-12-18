@@ -1,4 +1,4 @@
-from flask_restplus import Model, fields
+from flask_restx import Model, fields
 
 magento_model = Model('magento_model', {
     'url': fields.String(required=True),
