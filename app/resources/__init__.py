@@ -1,5 +1,5 @@
 from flask.blueprints import Blueprint
-from flask_restplus import Api
+from flask_restx import Api
 
 from .orders import api as orders_api
 from .user import api as user_api

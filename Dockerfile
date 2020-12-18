@@ -1,5 +1,4 @@
 FROM python:3.6.8-alpine
-MAINTAINER Ilche Bedelovski <ilche.bedelovski@gmail.com>
 
 RUN apk add --no-cache python-dev && \
     apk add --no-cache gcc && \
@@ -11,6 +10,7 @@ COPY app/ /srv/app
 COPY conf/ /srv/app
 COPY wsgi.py /srv/app
 COPY requirements.txt /srv/app
+
 WORKDIR /srv/app
 
 RUN pip install --upgrade pip && \

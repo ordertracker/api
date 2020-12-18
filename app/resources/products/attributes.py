@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse
 
 from flask import current_app as app
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 
 from app.helpers.common import authorize, welfare, get_service_token, status_code_responses
 from app.models.attribute import AttributeModel

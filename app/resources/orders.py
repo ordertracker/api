@@ -2,7 +2,7 @@ import requests, json
 from flask import request
 from flask import current_app as app
 from flask_restful import reqparse
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 
 from app.helpers.orders import get_all_orders, get_order, get_order_items, order_update, get_orders_by_status
 from app.helpers.common import authorize, welfare, get_service_token, status_code_responses
