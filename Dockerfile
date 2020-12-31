@@ -1,6 +1,6 @@
-FROM python:3.6.8-alpine
+FROM python:3.7-alpine
 
-RUN apk add --no-cache python-dev && \
+RUN apk add --no-cache python3-dev && \
     apk add --no-cache gcc && \
     apk add --no-cache g++ && \
     apk add --no-cache libffi-dev && \
