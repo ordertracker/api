@@ -14,7 +14,7 @@ flask-openid
 flask-dance
 Faker==0.8.13
 flask-restful
-flask_restplus
+flask_restx
 flask-jwt-extended
 pylint
 pylint-flask

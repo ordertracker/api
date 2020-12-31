@@ -1,5 +1,5 @@
 from flask_restful import reqparse
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required
 
 from flask import current_app as app
