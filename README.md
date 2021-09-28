@@ -19,7 +19,7 @@ $ source .env
 $ export $(cut -d= -f1 .env)
 ```
 
-FOr first time activation
+For first time activation
 ```
 $ virtualenv venv
 $ . venv/bin/activate
