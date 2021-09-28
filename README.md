@@ -19,6 +19,13 @@ $ source .env
 $ export $(cut -d= -f1 .env)
 ```
 
+For first time activation
+```
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install -r requirements.txt
+```
+
 Activating the Python virtualenv and starting the application
 ```
 $ . venv/bin/activate
