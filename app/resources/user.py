@@ -1,5 +1,5 @@
 from flask_restful import reqparse
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_refresh_token_required, get_jwt_identity, fresh_jwt_required
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 from flask import current_app as app
 from flask_restx import Namespace, Resource
@@ -54,7 +54,7 @@ class Users(Resource):
         }, 404
 
     @authorize
-    @fresh_jwt_required
+    @jwt_required(refresh=True)
     def delete(self, user_id):
         user = User.find_user_by_id(user_id)
         if user:
@@ -129,7 +129,7 @@ class UserLogin(Resource):
 
 
 class TokenRefresh(Resource):
-    @jwt_refresh_token_required
+    @jwt_required(refresh=True)
     def post(self):
         current_user_id = get_jwt_identity()
         new_token = create_access_token(identity=current_user_id, fresh=False)
