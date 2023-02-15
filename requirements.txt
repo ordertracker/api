@@ -1,5 +1,5 @@
 Pillow
-Werkzeug==0.16.1
+Werkzeug==2.2.3
 gunicorn
 requests
 blinker
